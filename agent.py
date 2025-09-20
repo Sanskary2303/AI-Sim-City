@@ -14,6 +14,25 @@ class CitizenAgent(Agent):
         self.health = 100  # Health starts at 100
         self.coins = 8  # Was 5, more starting coins
         self.social = random.randint(10, 30)  # Was 20-50, less lonely start
+        self.is_dead = False  # Death state
+        
+        # Missing attributes for Phase 4
+        self.age = random.randint(18, 35)
+        self.gender = random.choice(['male', 'female'])
+        self.food = random.randint(10, 30)
+        self.tools = random.randint(5, 15)
+        self.partner_id = None
+        self.children = []
+        self.skills = {
+            'farming': random.randint(10, 30),
+            'crafting': random.randint(10, 30),
+            'trading': random.randint(10, 30),
+            'learning': random.randint(10, 30),
+            'leadership': random.randint(10, 30)
+        }
+        self.has_leadership_role = False
+        self.friendships = {}  # For backward compatibility
+        self.family_id = None  # For family tracking
         
         self.max_hunger = 100
         self.max_energy = 100
@@ -65,6 +84,60 @@ class CitizenAgent(Agent):
         self.cultural_memory = []          # Remember cultural events attended
         self.alliance_preferences = {}     # Preferred alliance partners
         self.research_projects = []        # Active research interests
+        
+        # PHASE 4: Complex Psychology & Emotions
+        self.emotions = {
+            'happiness': random.randint(30, 70),
+            'anger': random.randint(0, 20),
+            'fear': random.randint(0, 30),
+            'sadness': random.randint(0, 20),
+            'excitement': random.randint(10, 40),
+            'stress': random.randint(0, 30),
+            'love': random.randint(0, 20),
+            'pride': random.randint(10, 30)
+        }
+        
+        # PHASE 4: Advanced personality system
+        self.personality_scores = {
+            'openness': random.randint(20, 80),        # Creativity, curiosity
+            'conscientiousness': random.randint(20, 80),  # Organization, discipline
+            'extraversion': random.randint(20, 80),    # Sociability, energy
+            'agreeableness': random.randint(20, 80),   # Cooperation, trust
+            'neuroticism': random.randint(20, 80)      # Emotional stability
+        }
+        
+        # PHASE 4: Complex memory and learning
+        self.long_term_memory = []         # Important life events
+        self.short_term_memory = []        # Recent experiences (last 10)
+        self.learned_behaviors = {}        # Behavioral adaptations
+        self.agent_relationships = {}      # Detailed relationship tracking
+        self.life_goals = self.generate_life_goals()  # Personal aspirations
+        
+        # PHASE 4: Advanced decision-making
+        self.decision_weights = {
+            'survival': random.uniform(0.6, 1.0),
+            'social': random.uniform(0.3, 0.8),
+            'achievement': random.uniform(0.2, 0.7),
+            'exploration': random.uniform(0.1, 0.6),
+            'altruism': random.uniform(0.1, 0.5)
+        }
+        
+        # PHASE 4: Skills specialization and mastery
+        self.skill_preferences = random.choice(['generalist', 'farming', 'crafting', 'trading', 'learning', 'leadership'])
+        self.mastery_level = 0             # Overall expertise level
+        self.teaching_ability = random.randint(0, 30)  # Can teach others
+        
+        # PHASE 4: Advanced social dynamics
+        self.charisma = random.randint(10, 60)
+        self.empathy = random.randint(20, 80)
+        self.social_network_size = 0
+        self.social_influence_radius = random.randint(2, 8)
+        
+        # PHASE 4: Life stage and development
+        self.life_stage = 'young_adult'    # young_adult, adult, mature, elder
+        self.wisdom = 0                    # Accumulated through experience
+        self.mentors = []                  # Agents who taught this agent
+        self.students = []                 # Agents this agent has taught
         self.work_experience = 0  # Experience in current profession
         
         # PHASE 2: Enhanced social and leadership system
@@ -74,6 +147,469 @@ class CitizenAgent(Agent):
         self.trade_partners = set()  # Regular trading partners
         self.resources_owned = {'tools': 0, 'luxury': 0}  # Additional resources
         self.leadership_ambition = random.randint(10, 90)  # Desire to lead
+
+    def generate_life_goals(self):
+        """Generate personal life goals based on personality and skills"""
+        goals = []
+        
+        # Goal generation based on personality
+        if self.personality_scores['openness'] > 60:
+            goals.append(random.choice(['explore_new_lands', 'create_masterpiece', 'discover_technology']))
+        
+        if self.personality_scores['conscientiousness'] > 60:
+            goals.append(random.choice(['become_leader', 'master_profession', 'build_legacy']))
+            
+        if self.personality_scores['extraversion'] > 60:
+            goals.append(random.choice(['unite_community', 'expand_social_network', 'become_diplomat']))
+            
+        if self.personality_scores['agreeableness'] > 60:
+            goals.append(random.choice(['help_community', 'resolve_conflicts', 'teach_others']))
+        
+        # Add survival/family goals
+        goals.extend(['find_partner', 'raise_family', 'ensure_prosperity'])
+        
+        return goals[:random.randint(2, 4)]  # Keep 2-4 goals
+
+    # PHASE 4: Advanced Psychological Methods
+    
+    def update_emotions(self, event_type, intensity=1):
+        """Update emotions based on life events"""
+        emotion_changes = {
+            'success': {'happiness': 10, 'pride': 8, 'stress': -5},
+            'failure': {'sadness': 8, 'anger': 5, 'stress': 10},
+            'social_positive': {'happiness': 5, 'love': 3, 'excitement': 5},
+            'social_negative': {'anger': 8, 'sadness': 5, 'stress': 7},
+            'danger': {'fear': 15, 'stress': 12, 'anger': 3},
+            'achievement': {'pride': 12, 'happiness': 8, 'excitement': 6}
+        }
+        
+        if event_type in emotion_changes:
+            for emotion, change in emotion_changes[event_type].items():
+                self.emotions[emotion] = max(0, min(100, 
+                    self.emotions[emotion] + (change * intensity)))
+    
+    def make_personality_decision(self, options):
+        """Make decisions based on personality traits"""
+        if not options:
+            return None
+            
+        scored_options = []
+        for option in options:
+            score = 0
+            
+            # Weigh options based on personality
+            if option == 'help_others' and self.personality_scores['agreeableness'] > 60:
+                score += 20
+            elif option == 'take_leadership' and self.personality_scores['extraversion'] > 60:
+                score += 25
+            elif option == 'explore_new' and self.personality_scores['openness'] > 60:
+                score += 15
+            elif option == 'organize_efficiently' and self.personality_scores['conscientiousness'] > 60:
+                score += 20
+            
+            # Add randomness but personality-influenced
+            score += random.randint(0, 30)
+            scored_options.append((option, score))
+        
+        # Return highest scored option
+        return max(scored_options, key=lambda x: x[1])[0]
+    
+    def add_memory(self, memory_type, content, importance=1):
+        """Add experiences to memory systems"""
+        memory_entry = {
+            'type': memory_type,
+            'content': content,
+            'step': self.model.step_count,
+            'importance': importance,
+            'emotions_at_time': self.emotions.copy()
+        }
+        
+        # Add to short-term memory
+        self.short_term_memory.append(memory_entry)
+        if len(self.short_term_memory) > 10:
+            self.short_term_memory.pop(0)
+        
+        # Important memories go to long-term
+        if importance >= 3:
+            self.long_term_memory.append(memory_entry)
+            if len(self.long_term_memory) > 50:
+                self.long_term_memory.pop(0)
+    
+    def update_relationship(self, agent_id, interaction_type, strength=1):
+        """Track and update relationships with other agents"""
+        if agent_id not in self.agent_relationships:
+            self.agent_relationships[agent_id] = {
+                'friendship': 0,
+                'trust': 50,
+                'cooperation': 0,
+                'conflict': 0,
+                'interactions': 0
+            }
+        
+        rel = self.agent_relationships[agent_id]
+        rel['interactions'] += 1
+        
+        if interaction_type == 'positive':
+            rel['friendship'] += strength * 2
+            rel['trust'] += strength
+            rel['cooperation'] += strength
+        elif interaction_type == 'negative':
+            rel['friendship'] -= strength * 2
+            rel['trust'] -= strength * 3
+            rel['conflict'] += strength
+        elif interaction_type == 'cooperation':
+            rel['cooperation'] += strength * 2
+            rel['trust'] += strength
+        
+        # Keep values in bounds
+        for key in ['friendship', 'trust', 'cooperation', 'conflict']:
+            rel[key] = max(-100, min(100, rel[key]))
+    
+    def learn_from_experience(self, skill_type, success=True):
+        """Learn and adapt behaviors based on experience"""
+        if skill_type not in self.learned_behaviors:
+            self.learned_behaviors[skill_type] = 0
+        
+        if success:
+            self.learned_behaviors[skill_type] += 1
+            self.mastery_level += 0.1
+        else:
+            self.learned_behaviors[skill_type] = max(0, self.learned_behaviors[skill_type] - 0.5)
+        
+        # Update wisdom based on age and experience
+        self.wisdom += 0.05 if success else 0.02
+    
+    def complex_decision_making(self, action_type):
+        """Advanced decision making considering multiple factors"""
+        decision_score = 0
+        
+        # Base decision on personality
+        if action_type == 'help_community':
+            decision_score += self.personality_scores['agreeableness'] * 0.3
+            decision_score += self.decision_weights['altruism'] * 50
+        elif action_type == 'pursue_leadership':
+            decision_score += self.personality_scores['extraversion'] * 0.4
+            decision_score += self.leadership_ambition * 0.3
+        elif action_type == 'focus_research':
+            decision_score += self.personality_scores['openness'] * 0.5
+            decision_score += self.decision_weights['achievement'] * 40
+        
+        # Modify based on current emotions
+        if self.emotions['happiness'] > 70:
+            decision_score += 10
+        if self.emotions['stress'] > 60:
+            decision_score -= 15
+        
+        # Consider social relationships
+        social_factor = sum(rel['friendship'] for rel in self.agent_relationships.values()) / max(1, len(self.agent_relationships))
+        decision_score += social_factor * 0.1
+        
+        return decision_score > 50
+    
+    def teach_skill_to_agent(self, student_agent, skill_type):
+        """Teach skills to other agents"""
+        if self.teaching_ability > 20 and self.skills.get(skill_type, 0) > 15:
+            teaching_effectiveness = (self.teaching_ability + self.skills[skill_type]) / 100
+            
+            # Student learns based on their openness and our teaching
+            if hasattr(student_agent, 'personality_scores'):
+                learning_rate = student_agent.personality_scores['openness'] / 100
+                skill_gain = teaching_effectiveness * learning_rate * random.uniform(0.5, 2.0)
+                
+                student_agent.skills[skill_type] = min(100, 
+                    student_agent.skills.get(skill_type, 0) + skill_gain)
+                
+                # Update relationships
+                self.update_relationship(student_agent.unique_id, 'positive', 2)
+                student_agent.update_relationship(self.unique_id, 'positive', 3)
+                
+                # Track mentorship
+                if student_agent.unique_id not in self.students:
+                    self.students.append(student_agent.unique_id)
+                if self.unique_id not in student_agent.mentors:
+                    student_agent.mentors.append(self.unique_id)
+                
+                return True
+        return False
+    
+    # PHASE 4: Advanced Behavioral Methods
+    
+    def update_life_stage(self):
+        """Update life stage based on age and experience"""
+        if self.age < 25:
+            self.life_stage = 'young_adult'
+        elif self.age < 45:
+            self.life_stage = 'adult'
+        elif self.age < 65:
+            self.life_stage = 'mature'
+        else:
+            self.life_stage = 'elder'
+    
+    def pursue_life_goals(self):
+        """Actively work towards achieving life goals"""
+        if not self.life_goals:
+            return
+            
+        current_goal = random.choice(self.life_goals)
+        
+        if current_goal == 'become_leader' and not self.has_leadership_role:
+            if self.complex_decision_making('pursue_leadership'):
+                self.leadership_ambition += 2
+                self.update_emotions('achievement', 0.5)
+                
+        elif current_goal == 'master_profession':
+            skill_to_improve = self.skill_preferences if self.skill_preferences != 'generalist' else random.choice(['farming', 'crafting', 'trading'])
+            if skill_to_improve in self.skills:
+                self.skills[skill_to_improve] += random.uniform(0.5, 2.0)
+                self.learn_from_experience(skill_to_improve, True)
+                
+        elif current_goal == 'help_community':
+            if self.complex_decision_making('help_community'):
+                # Look for ways to help nearby agents
+                self.engage_in_altruistic_behavior()
+                
+        elif current_goal == 'expand_social_network':
+            self.seek_new_relationships()
+    
+    def engage_in_complex_social_interactions(self):
+        """Advanced social behaviors based on personality and relationships"""
+        nearby_agents = [agent for agent in self.model.agents 
+                        if isinstance(agent, CitizenAgent) and agent != self and 
+                        hasattr(agent, 'pos') and agent.pos is not None and
+                        self.get_distance_to_agent(agent) <= self.social_influence_radius]
+        
+        if not nearby_agents:
+            return
+            
+        for agent in random.sample(nearby_agents, min(3, len(nearby_agents))):
+            interaction_type = self.determine_interaction_type(agent)
+            
+            if interaction_type == 'mentoring' and hasattr(self, 'teaching_ability') and hasattr(agent, 'skills'):
+                skill_to_teach = self.skill_preferences if hasattr(self, 'skill_preferences') else 'farming'
+                if skill_to_teach in self.skills and self.skills[skill_to_teach] > agent.skills.get(skill_to_teach, 0):
+                    if self.teach_skill_to_agent(agent, skill_to_teach):
+                        self.add_memory('teaching', f'Taught {skill_to_teach} to Agent {agent.unique_id}', 3)
+                    
+            elif interaction_type == 'collaboration':
+                self.collaborate_with_agent(agent)
+                
+            elif interaction_type == 'emotional_support':
+                self.provide_emotional_support(agent)
+    
+    def demonstrate_teaching_and_learning(self):
+        """Show teaching and learning behaviors"""
+        # Seek mentors if we're still learning
+        if hasattr(self, 'life_stage') and self.life_stage == 'young_adult' and len(self.mentors) < 2:
+            potential_mentors = [agent for agent in self.model.agents 
+                               if isinstance(agent, CitizenAgent) and 
+                               hasattr(agent, 'teaching_ability') and 
+                               agent.teaching_ability > 15 and 
+                               hasattr(agent, 'life_stage') and
+                               agent.life_stage in ['adult', 'mature', 'elder'] and
+                               agent != self]
+            
+            if potential_mentors:
+                mentor = random.choice(potential_mentors)
+                if mentor.unique_id not in self.mentors:
+                    self.mentors.append(mentor.unique_id)
+                    self.update_relationship(mentor.unique_id, 'positive', 3)
+        
+        # Become a mentor if we have expertise
+        if (hasattr(self, 'teaching_ability') and self.teaching_ability > 20 and 
+            hasattr(self, 'life_stage') and self.life_stage in ['mature', 'elder']):
+            potential_students = [agent for agent in self.model.agents 
+                                if isinstance(agent, CitizenAgent) and
+                                hasattr(agent, 'life_stage') and 
+                                agent.life_stage == 'young_adult' and 
+                                agent != self]
+            
+            for student in random.sample(potential_students, min(2, len(potential_students))):
+                if hasattr(self, 'skills') and self.skills:
+                    best_skill = max(self.skills.items(), key=lambda x: x[1])
+                    if best_skill[1] > 30:  # Only teach if we're good at it
+                        self.teach_skill_to_agent(student, best_skill[0])
+    
+    def make_strategic_decisions(self):
+        """Make long-term strategic decisions"""
+        # Evaluate current life satisfaction
+        life_satisfaction = (self.emotions['happiness'] + 
+                           (100 - self.emotions['stress']) + 
+                           self.emotions['pride']) / 3
+        
+        if life_satisfaction < 40:
+            # Need to make changes
+            if self.complex_decision_making('change_profession'):
+                self.consider_profession_change()
+            elif self.complex_decision_making('relocate'):
+                self.consider_relocation()
+        
+        # Long-term planning based on resources
+        if self.food > 50 and self.tools > 20:
+            # We're secure, can focus on higher goals
+            if 'create_masterpiece' in self.life_goals:
+                self.work_on_masterpiece()
+            elif 'discover_technology' in self.life_goals:
+                self.focus_on_research()
+    
+    def get_distance_to_agent(self, other_agent):
+        """Calculate distance to another agent"""
+        if not hasattr(other_agent, 'pos') or not hasattr(self, 'pos'):
+            return float('inf')
+        if other_agent.pos is None or self.pos is None:
+            return float('inf')
+            
+        try:
+            # Simple position extraction
+            if isinstance(self.pos, tuple):
+                x1, y1 = self.pos
+            else:
+                x1, y1 = 0, 0
+                
+            if isinstance(other_agent.pos, tuple):
+                x2, y2 = other_agent.pos
+            else:
+                x2, y2 = 0, 0
+                
+            return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+        except:
+            return float('inf')
+    
+    def determine_interaction_type(self, other_agent):
+        """Determine what type of interaction to have with another agent"""
+        if other_agent.unique_id in self.agent_relationships:
+            rel = self.agent_relationships[other_agent.unique_id]
+            if rel['friendship'] > 30:
+                return 'collaboration'
+            elif rel['trust'] > 60:
+                return 'mentoring'
+        
+        # Based on personality
+        if self.personality_scores['agreeableness'] > 60:
+            return 'emotional_support'
+        elif self.personality_scores['openness'] > 60:
+            return 'collaboration'
+        else:
+            return 'casual'
+    
+    def collaborate_with_agent(self, other_agent):
+        """Collaborate on projects with another agent"""
+        # Share resources for mutual benefit
+        if self.food > other_agent.food + 10:
+            transfer = min(5, self.food - other_agent.food)
+            self.food -= transfer
+            other_agent.food += transfer
+            self.update_relationship(other_agent.unique_id, 'cooperation', 2)
+            other_agent.update_relationship(self.unique_id, 'positive', 2)
+            
+        # Collaborate on research
+        if self.research_focus == other_agent.research_focus and self.research_focus != 'none':
+            self.research_progress += 2
+            other_agent.research_progress += 2
+            self.update_emotions('achievement', 1)
+            other_agent.update_emotions('achievement', 1)
+    
+    def provide_emotional_support(self, other_agent):
+        """Provide emotional support to stressed agents"""
+        if other_agent.emotions['stress'] > 60 or other_agent.emotions['sadness'] > 50:
+            # Reduce their negative emotions
+            other_agent.emotions['stress'] = max(0, other_agent.emotions['stress'] - 10)
+            other_agent.emotions['sadness'] = max(0, other_agent.emotions['sadness'] - 8)
+            other_agent.emotions['happiness'] += 5
+            
+            # Build relationship
+            self.update_relationship(other_agent.unique_id, 'positive', 3)
+            other_agent.update_relationship(self.unique_id, 'positive', 4)
+            
+            # We feel good about helping
+            self.update_emotions('achievement', 1)
+            self.add_memory('helping', f'Helped Agent {other_agent.unique_id} with stress', 2)
+    
+    def engage_in_altruistic_behavior(self):
+        """Help community members in need"""
+        needy_agents = [agent for agent in self.model.agents 
+                       if isinstance(agent, CitizenAgent) and
+                       hasattr(agent, 'health') and hasattr(agent, 'food') and
+                       (agent.health < 30 or agent.food < 10) and agent != self]
+        
+        if needy_agents and hasattr(self, 'food') and self.food > 20:
+            helped_agent = random.choice(needy_agents)
+            # Give food to help
+            help_amount = min(5, self.food - 15)  # Keep some for ourselves
+            self.food -= help_amount
+            helped_agent.food += help_amount
+            
+            self.update_emotions('achievement', 2)
+            self.add_memory('altruism', f'Helped Agent {helped_agent.unique_id} with food', 3)
+            self.update_relationship(helped_agent.unique_id, 'positive', 4)
+    
+    def seek_new_relationships(self):
+        """Actively seek to build new social connections"""
+        potential_friends = [agent for agent in self.model.agents 
+                           if isinstance(agent, CitizenAgent) and
+                           agent != self and 
+                           agent.unique_id not in self.agent_relationships and
+                           hasattr(agent, 'pos') and agent.pos is not None and
+                           self.get_distance_to_agent(agent) <= 5]
+        
+        if potential_friends:
+            new_friend = random.choice(potential_friends)
+            # Initiate friendly interaction
+            self.update_relationship(new_friend.unique_id, 'positive', 1)
+            if hasattr(new_friend, 'update_relationship'):
+                new_friend.update_relationship(self.unique_id, 'positive', 1)
+            if hasattr(self, 'social_network_size'):
+                self.social_network_size += 1
+            self.update_emotions('social_positive', 1)
+    
+    def consider_profession_change(self):
+        """Consider changing profession based on circumstances"""
+        current_skill_level = self.skills.get(self.profession, 0)
+        
+        # Look for profession where we might do better
+        best_skill = max(self.skills.items(), key=lambda x: x[1])
+        if best_skill[1] > current_skill_level + 20:
+            old_profession = self.profession
+            self.profession = best_skill[0]
+            self.add_memory('career_change', f'Changed from {old_profession} to {self.profession}', 4)
+            self.update_emotions('achievement', 2)
+    
+    def consider_relocation(self):
+        """Consider moving to a better location"""
+        # This would involve complex spatial analysis
+        # For now, just move to a random nearby location
+        if random.random() < 0.1:  # 10% chance to relocate
+            x, y = self.pos
+            new_x = max(0, min(self.model.grid.width - 1, x + random.randint(-3, 3)))
+            new_y = max(0, min(self.model.grid.height - 1, y + random.randint(-3, 3)))
+            self.model.grid.move_agent(self, (new_x, new_y))
+            self.add_memory('relocation', f'Moved to better location ({new_x}, {new_y})', 2)
+    
+    def work_on_masterpiece(self):
+        """Work on creating a cultural masterpiece"""
+        if hasattr(self, 'artistic_skill') and self.artistic_skill > 30:
+            self.artistic_skill += random.uniform(0.5, 2.0)
+            if random.random() < 0.05:  # 5% chance to complete masterpiece
+                if hasattr(self.model, 'art_works'):
+                    self.model.art_works += 1
+                self.cultural_contributions += 1
+                self.update_emotions('achievement', 3)
+                self.add_memory('masterpiece', 'Completed a cultural masterpiece', 5)
+                total_art = getattr(self.model, 'art_works', 0)
+                print(f"🎨 Agent {self.unique_id} created a masterpiece! (Total artworks: {total_art})")
+    
+    def focus_on_research(self):
+        """Focus on advanced research and discovery"""
+        if hasattr(self, 'research_focus') and self.research_focus != 'none':
+            if hasattr(self, 'research_progress'):
+                self.research_progress += random.uniform(1, 3)
+                if self.research_progress > 50:
+                    # Research breakthrough
+                    if hasattr(self.model, 'research_projects'):
+                        self.model.research_projects += 1
+                    self.research_progress = 0
+                    self.update_emotions('achievement', 3)
+                    self.add_memory('research_breakthrough', f'Breakthrough in {self.research_focus}', 5)
+                    print(f"🔬 Agent {self.unique_id} achieved research breakthrough in {self.research_focus}!")
         
         # Social system
         self.friendships = {}  # {agent_id: friendship_score}
@@ -127,6 +663,13 @@ class CitizenAgent(Agent):
         self.conduct_research_activities()
         self.participate_in_conflict_resolution()
         self.develop_diplomatic_relations()
+        
+        # PHASE 4: Advanced psychological behaviors
+        self.update_life_stage()
+        self.pursue_life_goals()
+        self.engage_in_complex_social_interactions()
+        self.demonstrate_teaching_and_learning()
+        self.make_strategic_decisions()
         
         # Family management
         self.manage_family()

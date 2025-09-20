@@ -209,16 +209,39 @@ def draw_grid(model, ax):
         scientific_discoveries = getattr(model, 'scientific_discoveries', 0)
         infrastructure_level = getattr(model, 'infrastructure_level', 1)
         
-        stats_text = f"""=== AI CITY SIMULATION (PHASE 3) ===
+        # PHASE 4: Advanced psychological and social metrics
+        total_happiness = getattr(model, 'total_happiness', 0)
+        community_stress = getattr(model, 'community_stress_level', 0)
+        cultural_masterpieces = getattr(model, 'cultural_masterpieces', 0)
+        wisdom_accumulated = getattr(model, 'wisdom_accumulated', 0)
+        teaching_relationships = getattr(model, 'teaching_relationships', 0)
+        life_goal_achievements = getattr(model, 'life_goal_achievements', 0)
+        social_cohesion = getattr(model, 'social_cohesion', 50)
+        psychological_wellbeing = getattr(model, 'psychological_wellbeing', 50)
+        education_quality = getattr(model, 'education_system_quality', 0)
+        
+        stats_text = f"""=== AI CITY SIMULATION (PHASE 4: ADVANCED PSYCHOLOGY) ===
 Season: {model.season.title()} | Weather: {model.weather.title()}
 Tech Level: {tech_level} | Discoveries: {tech_count}
 Leaders: {leader_count} | Trade Volume: {trade_volume:.0f}
 
-CIVILIZATION:
+ADVANCED CIVILIZATION:
 Culture Level: {cultural_level} | Art Works: {art_works}
-Monuments: {monuments} | Research: {scientific_discoveries}
+Masterpieces: {cultural_masterpieces} | Research: {scientific_discoveries}
 Infrastructure: {infrastructure_level:.1f} | Conflicts: {conflicts}
 Alliances: {alliances}
+
+PSYCHOLOGICAL WELLBEING:
+Community Happiness: {total_happiness:.1f}/100
+Community Stress: {community_stress:.1f}/100
+Social Cohesion: {social_cohesion:.1f}/100
+Psychological Health: {psychological_wellbeing:.1f}/100
+
+KNOWLEDGE & WISDOM:
+Wisdom Accumulated: {wisdom_accumulated:.1f}
+Teaching Relationships: {teaching_relationships}
+Education Quality: {education_quality:.1f}%
+Life Goals Achieved: {life_goal_achievements}
 
 POPULATION:
 Alive: {len(alive_agents)} | Dead: {len(dead_agents)}

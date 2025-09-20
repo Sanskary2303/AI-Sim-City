@@ -36,16 +36,19 @@ class CityModel(Model):
         self.num_temples = 3      # Increased from 1 to 3
         self.num_schools = 2      # Increased from 1 to 2
         
-        # Weather and seasonal system
-        self.season = 'spring'
-        self.season_cycle = 0
-        self.weather = 'normal'  # normal, rain, drought, storm
-        self.technological_level = 1
-        self.cultural_values = {'cooperation': 50, 'individualism': 50, 'tradition': 50}
+        # Environmental variables
+        self.season = "spring"
+        self.weather = "clear"
+        self.temperature = 20
+        self.humidity = 50
+        self.steps = 0  # Track model steps for seasonal changes
+        self.step_count = 0  # For Phase 4 features
+        self.season_cycle = 0  # Season progression
         
         # Technology progression system (PHASE 2)
         self.technologies = set()  # Discovered technologies
         self.technology_points = 0  # Accumulated through learning
+        self.technological_level = 1  # Overall tech level for tracking
         self.tech_tree = {
             'agriculture': {'cost': 50, 'prereq': None, 'benefits': 'food_boost'},
             'craftsmanship': {'cost': 100, 'prereq': 'agriculture', 'benefits': 'workshop_efficiency'},
@@ -96,6 +99,23 @@ class CityModel(Model):
         self.research_projects = []
         self.innovations = []
         self.scientific_discoveries = 0
+        
+        # PHASE 4: Advanced Agent Psychology
+        self.total_happiness = 0
+        self.community_stress_level = 0
+        self.cultural_masterpieces = 0
+        self.wisdom_accumulated = 0
+        self.teaching_relationships = 0
+        self.complex_interactions = 0
+        self.life_goal_achievements = 0
+        self.emotional_support_events = 0
+        
+        # PHASE 4: Advanced Civilization Metrics
+        self.social_cohesion = 50  # Community unity
+        self.innovation_rate = 0   # Rate of discoveries
+        self.education_system_quality = 0
+        self.cultural_renaissance_level = 0
+        self.psychological_wellbeing = 50
         
         # Data collection
         self.datacollector = DataCollector(
@@ -277,6 +297,13 @@ class CityModel(Model):
         self.develop_infrastructure()
         self.conduct_research()
         
+        # PHASE 4: Advanced psychological and social systems
+        self.monitor_community_wellbeing()
+        self.facilitate_advanced_interactions()
+        self.track_wisdom_and_learning()
+        self.evaluate_cultural_renaissance()
+        self.manage_complex_social_dynamics()
+        
         # Execute all agents
         agents_copy = list(self.agents)  # Copy to avoid modification during iteration
         for agent in agents_copy:
@@ -307,6 +334,7 @@ class CityModel(Model):
         
         # Increment step counter
         self.steps += 1
+        self.step_count += 1
         
         # Collect data
         self.datacollector.collect(self)
@@ -880,6 +908,180 @@ class CityModel(Model):
                 elif innovation['benefit'] == 'production':
                     self.global_resources['food'] += 30
        
+    # PHASE 4: Advanced Psychological and Social Systems
+    
+    def monitor_community_wellbeing(self):
+        """Monitor and track community psychological health"""
+        total_agents = len([a for a in self.agents if isinstance(a, CitizenAgent) and not a.is_dead])
+        if total_agents == 0:
+            return
+            
+        # Calculate community emotional state
+        total_happiness = 0
+        total_stress = 0
+        
+        for agent in self.agents:
+            if isinstance(agent, CitizenAgent) and not agent.is_dead and hasattr(agent, 'emotions'):
+                total_happiness += agent.emotions.get('happiness', 50)
+                total_stress += agent.emotions.get('stress', 30)
+                
+                # Track individual wellbeing improvements
+                if agent.emotions.get('happiness', 50) > 80:
+                    self.psychological_wellbeing += 0.1
+                elif agent.emotions.get('stress', 30) < 20:
+                    self.psychological_wellbeing += 0.05
+        
+        self.total_happiness = total_happiness / max(1, total_agents)
+        self.community_stress_level = total_stress / max(1, total_agents)
+        
+        # Adjust social cohesion based on community mood
+        if self.total_happiness > 60:
+            self.social_cohesion += 0.5
+        elif self.community_stress_level > 60:
+            self.social_cohesion -= 0.3
+            
+        self.social_cohesion = max(0, min(100, self.social_cohesion))
+    
+    def facilitate_advanced_interactions(self):
+        """Enable and track complex social interactions"""
+        self.complex_interactions = 0
+        self.emotional_support_events = 0
+        
+        for agent in self.agents:
+            if isinstance(agent, CitizenAgent) and not agent.is_dead:
+                # Count complex social behaviors
+                if hasattr(agent, 'agent_relationships'):
+                    self.complex_interactions += len(agent.agent_relationships)
+                    
+                # Track emotional support
+                if hasattr(agent, 'empathy') and agent.empathy > 60:
+                    nearby_stressed = [a for a in self.agents 
+                                     if isinstance(a, CitizenAgent) and not a.is_dead 
+                                     and hasattr(a, 'emotions') and a.emotions.get('stress', 0) > 50
+                                     and a != agent]
+                    
+                    if nearby_stressed:
+                        self.emotional_support_events += 1
+                        # Facilitate support
+                        stressed_agent = random.choice(nearby_stressed)
+                        stressed_agent.emotions['stress'] = max(0, stressed_agent.emotions['stress'] - 5)
+                        agent.update_emotions('achievement', 1)
+    
+    def track_wisdom_and_learning(self):
+        """Track wisdom accumulation and teaching relationships"""
+        self.wisdom_accumulated = 0
+        self.teaching_relationships = 0
+        
+        for agent in self.agents:
+            if isinstance(agent, CitizenAgent) and not agent.is_dead:
+                if hasattr(agent, 'wisdom'):
+                    self.wisdom_accumulated += agent.wisdom
+                    
+                if hasattr(agent, 'students'):
+                    self.teaching_relationships += len(agent.students)
+                    
+                # Encourage teaching based on age and skill
+                if (hasattr(agent, 'life_stage') and agent.life_stage in ['mature', 'elder'] 
+                    and hasattr(agent, 'teaching_ability') and agent.teaching_ability > 25):
+                    
+                    potential_students = [a for a in self.agents 
+                                        if isinstance(a, CitizenAgent) and not a.is_dead
+                                        and hasattr(a, 'life_stage') and a.life_stage == 'young_adult'
+                                        and a != agent]
+                    
+                    if potential_students and random.random() < 0.05:
+                        student = random.choice(potential_students)
+                        skill_to_teach = max(agent.skills.items(), key=lambda x: x[1])[0]
+                        if agent.teach_skill_to_agent(student, skill_to_teach):
+                            print(f"🎓 Agent {agent.unique_id} taught {skill_to_teach} to Agent {student.unique_id}")
+    
+    def evaluate_cultural_renaissance(self):
+        """Assess cultural and artistic development"""
+        cultural_agents = [a for a in self.agents if isinstance(a, CitizenAgent) 
+                          and not a.is_dead and hasattr(a, 'artistic_skill') 
+                          and a.artistic_skill > 40]
+        
+        if len(cultural_agents) > 3:
+            self.cultural_renaissance_level += 0.2
+            
+            # Chance for cultural masterpiece
+            if random.random() < 0.02:
+                artist = max(cultural_agents, key=lambda x: x.artistic_skill)
+                self.cultural_masterpieces += 1
+                artist.cultural_contributions += 1
+                artist.update_emotions('achievement', 3)
+                print(f"🎨 Agent {artist.unique_id} created a cultural masterpiece! (Total: {self.cultural_masterpieces})")
+        
+        # Track innovation rate
+        recent_discoveries = self.scientific_discoveries
+        if recent_discoveries > 0:
+            self.innovation_rate = recent_discoveries / max(1, self.step_count / 100)
+        
+        # Education system quality
+        teachers = len([a for a in self.agents if isinstance(a, CitizenAgent) 
+                       and not a.is_dead and hasattr(a, 'teaching_ability') 
+                       and a.teaching_ability > 20])
+        total_agents = len([a for a in self.agents if isinstance(a, CitizenAgent) and not a.is_dead])
+        
+        if total_agents > 0:
+            self.education_system_quality = (teachers / total_agents) * 100
+    
+    def manage_complex_social_dynamics(self):
+        """Manage advanced social structures and dynamics"""
+        # Track life goal achievements
+        self.life_goal_achievements = 0
+        
+        for agent in self.agents:
+            if isinstance(agent, CitizenAgent) and not agent.is_dead:
+                if hasattr(agent, 'life_goals'):
+                    # Check for goal completion
+                    completed_goals = []
+                    
+                    for goal in agent.life_goals:
+                        if goal == 'become_leader' and hasattr(agent, 'has_leadership_role') and agent.has_leadership_role:
+                            completed_goals.append(goal)
+                        elif goal == 'master_profession' and hasattr(agent, 'skills'):
+                            best_skill = max(agent.skills.values()) if agent.skills else 0
+                            if best_skill > 80:
+                                completed_goals.append(goal)
+                        elif goal == 'find_partner' and hasattr(agent, 'partner_id') and agent.partner_id:
+                            completed_goals.append(goal)
+                        elif goal == 'help_community' and hasattr(agent, 'cultural_contributions') and agent.cultural_contributions > 5:
+                            completed_goals.append(goal)
+                    
+                    # Remove completed goals and reward achievement
+                    for goal in completed_goals:
+                        if goal in agent.life_goals:
+                            agent.life_goals.remove(goal)
+                            agent.update_emotions('achievement', 3)
+                            self.life_goal_achievements += 1
+                            print(f"🎯 Agent {agent.unique_id} achieved life goal: {goal}")
+                            
+                            # Generate new goal
+                            new_goals = ['expand_influence', 'create_legacy', 'mentor_others', 'explore_knowledge']
+                            agent.life_goals.append(random.choice(new_goals))
+        
+        # Social network effects
+        highly_connected = [a for a in self.agents if isinstance(a, CitizenAgent) 
+                           and not a.is_dead and hasattr(a, 'agent_relationships') 
+                           and len(a.agent_relationships) > 5]
+        
+        # Highly connected agents boost community cohesion
+        if highly_connected:
+            self.social_cohesion += len(highly_connected) * 0.1
+        
+        # Conflict resolution through social networks
+        for agent in highly_connected:
+            if hasattr(agent, 'diplomatic_skill') and agent.diplomatic_skill > 50:
+                # Help resolve conflicts in their network
+                for relation_id, relationship in agent.agent_relationships.items():
+                    if relationship.get('conflict', 0) > 30:
+                        # Mediate conflict
+                        relationship['conflict'] = max(0, relationship['conflict'] - 10)
+                        relationship['trust'] += 5
+                        agent.conflicts_mediated += 1
+                        self.conflicts_resolved += 1
+    
     # Compatibility properties for the schedule
     @property
     def schedule(self):
