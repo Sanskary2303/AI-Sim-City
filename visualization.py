@@ -42,14 +42,14 @@ def agent_color_map(agent):
     return "black"
 
 
-def draw_grid(model, ax):
+def draw_grid(model, ax_grid, ax_stats):
     """Draw the grid with agents."""
-    ax.clear()
-    ax.set_xlim(0, model.width)
-    ax.set_ylim(0, model.height)
-    ax.set_aspect('equal')
-    ax.grid(True, alpha=0.3)
-    ax.set_title(f"AI City Simulation - Step {model.schedule.steps}")
+    ax_grid.clear()
+    ax_grid.set_xlim(0, model.width)
+    ax_grid.set_ylim(0, model.height)
+    ax_grid.set_aspect('equal')
+    ax_grid.set_title('AI City Simulation - Phase 4', fontsize=14, fontweight='bold')
+    ax_grid.grid(True, alpha=0.3)
     
     # Draw all agents
     for cell in model.grid.coord_iter():
@@ -72,64 +72,64 @@ def draw_grid(model, ax):
                     circle.set_edgecolor(family_color)
                     circle.set_linewidth(3)
                 
-                ax.add_patch(circle)
+                ax_grid.add_patch(circle)
                 
                 # Add profession indicator (top) and personality traits (bottom)
                 if hasattr(agent, 'profession') and agent.profession:
                     profession_abbrev = agent.profession[0].upper()  # First letter
-                    ax.text(x + 0.5, y + 0.8, profession_abbrev, ha='center', va='center', 
+                    ax_grid.text(x + 0.5, y + 0.8, profession_abbrev, ha='center', va='center', 
                            fontsize=8, color='black', weight='bold')
                 
                 trait_text = "".join([t[0].upper() for t in agent.personality_traits])
-                ax.text(x + 0.5, y + 0.2, trait_text, ha='center', va='center', 
+                ax_grid.text(x + 0.5, y + 0.2, trait_text, ha='center', va='center', 
                        fontsize=6, color='white', weight='bold')
                        
             elif isinstance(agent, Food):
                 # Draw food as green squares
                 rect = patches.Rectangle((x + 0.2, y + 0.2), 0.6, 0.6, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
+                ax_grid.add_patch(rect)
             elif isinstance(agent, House):
                 # Draw houses as large blue squares with H label
                 rect = patches.Rectangle((x + 0.05, y + 0.05), 0.9, 0.9, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'H', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'H', ha='center', va='center', 
                        fontsize=12, color='white', weight='bold')
             elif isinstance(agent, Job):
                 # Draw jobs as yellow squares with J label
                 rect = patches.Rectangle((x + 0.2, y + 0.2), 0.6, 0.6, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'J', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'J', ha='center', va='center', 
                        fontsize=10, color='black', weight='bold')
             elif isinstance(agent, Market):
                 # Draw markets as gold squares with M label
                 rect = patches.Rectangle((x + 0.1, y + 0.1), 0.8, 0.8, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'M', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'M', ha='center', va='center', 
                        fontsize=12, color='black', weight='bold')
             elif isinstance(agent, Workshop):
                 # Draw workshops as brown squares with W label
                 rect = patches.Rectangle((x + 0.1, y + 0.1), 0.8, 0.8, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'W', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'W', ha='center', va='center', 
                        fontsize=12, color='white', weight='bold')
             elif isinstance(agent, Temple):
                 # Draw temples as violet squares with T label
                 rect = patches.Rectangle((x + 0.1, y + 0.1), 0.8, 0.8, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'T', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'T', ha='center', va='center', 
                        fontsize=12, color='white', weight='bold')
             elif isinstance(agent, School):
                 # Draw schools as cyan squares with S label
                 rect = patches.Rectangle((x + 0.1, y + 0.1), 0.8, 0.8, 
                                        facecolor=color, edgecolor='black', alpha=0.8)
-                ax.add_patch(rect)
-                ax.text(x + 0.5, y + 0.5, 'S', ha='center', va='center', 
+                ax_grid.add_patch(rect)
+                ax_grid.text(x + 0.5, y + 0.5, 'S', ha='center', va='center', 
                        fontsize=12, color='black', weight='bold')
     
     # Add enhanced stats text
@@ -277,22 +277,15 @@ Tech Level: {tech_level} | Discoveries: {tech_count} | Leaders: {leader_count}
 Culture Level: {cultural_level} | All agents dead!
 Buildings: F:{food_count} J:{job_count} M:{market_count} W:{workshop_count} T:{temple_count} S:{school_count}"""
     
-    ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, 
-            verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
-
-
-def run_simulation():
-    """Run the simulation with matplotlib visualization."""
-    print("Starting AI City Simulation...")
-    print("Close the window to stop the simulation")
+    # Display stats in the separate stats panel
+    ax_stats.clear()
+    ax_stats.axis('off')
+    ax_stats.set_title('Live Statistics', fontsize=12, fontweight='bold', pad=20)
+    ax_stats.text(0.05, 0.95, stats_text, transform=ax_stats.transAxes, 
+                  verticalalignment='top', fontsize=8, 
+                  bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
     
-    # Create model (SCALED UP POPULATION)
-    model = CityModel(width=20, height=20, num_agents=50, num_food=60, num_houses=20, num_jobs=25)
-    
-    # Set up the plot
-    fig, ax = plt.subplots(figsize=(10, 10))
-    
-    # Add enhanced legend with new building types
+    # Add legend that gets redrawn every frame
     legend_elements = [
         patches.Circle((0, 0), 0.1, facecolor='blue', label='Normal Agent'),
         patches.Circle((0, 0), 0.1, facecolor='red', label='Hungry Agent'),
@@ -309,20 +302,34 @@ def run_simulation():
         patches.Rectangle((0, 0), 0.1, 0.1, facecolor='cyan', label='School (S)')
     ]
     
+    # Add legend below the city grid
+    ax_grid.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.2), 
+                   ncol=4, fontsize=9, frameon=True, fancybox=True, shadow=True)
+
+
+def run_simulation():
+    """Run the simulation with matplotlib visualization."""
+    print("Starting AI City Simulation...")
+    print("Close the window to stop the simulation")
+    
+    # Create model (SCALED UP POPULATION)
+    model = CityModel(width=20, height=20, num_agents=50, num_food=60, num_houses=20, num_jobs=25)
+    
+    # Set up the plot with two subplots: city map on left, stats on right
+    fig, (ax_grid, ax_stats) = plt.subplots(1, 2, figsize=(16, 8), 
+                                            gridspec_kw={'width_ratios': [3, 1]})
+    
     def animate(frame):
         """Animation function for matplotlib."""
         model.step()
-        draw_grid(model, ax)
+        draw_grid(model, ax_grid, ax_stats)
         return []
     
     # Create animation
     ani = FuncAnimation(fig, animate, interval=500, blit=False, cache_frame_data=False)
     
-    # Add legend to the figure
-    fig.legend(handles=legend_elements, loc='upper right')
-    
-    # Show the plot
-    plt.tight_layout()
+    # Adjust layout to make room for legend
+    plt.subplots_adjust(bottom=0.25, right=0.95)
     plt.show()
     
     return ani  # Return animation to keep it alive
